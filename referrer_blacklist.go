@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 // Contains all blacklisted referrer hosts.
 // Please add the reference in case you copy an existing list.

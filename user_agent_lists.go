@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 var (
 	// filterProductPrefix is a list of product prefixes to ignore, as they provide no value in identifying a browser.

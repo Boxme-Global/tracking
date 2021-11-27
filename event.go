@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 // EventOptions are the options to save a new event.
 // The name is required. All other fields are optional.

@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 type screenClass struct {
 	minWidth uint16

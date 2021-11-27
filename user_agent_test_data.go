@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 type testUserAgent struct {
 	ua             string

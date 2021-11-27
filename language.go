@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 import (
 	iso6391 "github.com/emvi/iso-639-1"

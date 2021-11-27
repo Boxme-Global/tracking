@@ -1,4 +1,4 @@
-module github.com/pirsch-analytics/pirsch/v3
+module github.com/Boxme-Global/tracking
 
 go 1.16
 

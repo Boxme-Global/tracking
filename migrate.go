@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 import (
 	// ClickHouse is an essential part of Pirsch.

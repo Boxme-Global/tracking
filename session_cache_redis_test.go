@@ -1,4 +1,4 @@
-package pirsch
+package omisocial
 
 import (
 	"github.com/go-redis/redis/v8"
