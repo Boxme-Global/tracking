@@ -34,6 +34,10 @@ type PageView struct {
 	UTMCampaign     string `db:"utm_campaign"`
 	UTMContent      string `db:"utm_content"`
 	UTMTerm         string `db:"utm_term"`
+	OTMSource       string `db:"otm_source"`
+	OTMMedium       string `db:"otm_medium"`
+	OTMCampaign     string `db:"otm_campaign"`
+	OTMPosition     string `db:"otm_position"`
 }
 
 // String implements the Stringer interface.
@@ -77,6 +81,10 @@ type Session struct {
 	UTMCampaign     string `db:"utm_campaign"`
 	UTMContent      string `db:"utm_content"`
 	UTMTerm         string `db:"utm_term"`
+	OTMSource       string `db:"otm_source"`
+	OTMMedium       string `db:"otm_medium"`
+	OTMCampaign     string `db:"otm_campaign"`
+	OTMPosition     string `db:"otm_position"`
 }
 
 // String implements the Stringer interface.
@@ -118,6 +126,10 @@ type Event struct {
 	UTMCampaign     string `db:"utm_campaign"`
 	UTMContent      string `db:"utm_content"`
 	UTMTerm         string `db:"utm_term"`
+	OTMSource       string `db:"otm_source"`
+	OTMMedium       string `db:"otm_medium"`
+	OTMCampaign     string `db:"otm_campaign"`
+	OTMPosition     string `db:"otm_position"`
 }
 
 // String implements the Stringer interface.
