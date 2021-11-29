@@ -220,12 +220,12 @@ func IgnoreHit(r *http.Request) bool {
 func HitOptionsFromRequest(r *http.Request) *HitOptions {
 	query := r.URL.Query()
 	return &HitOptions{
-		ClientID:     getUInt64QueryParam(query.Get("client_id")),
+		ClientID:     getUInt64QueryParam(query.Get("id")),
 		URL:          getURLQueryParam(query.Get("url")),
-		Title:        strings.TrimSpace(query.Get("t")),
-		Referrer:     getURLQueryParam(query.Get("ref")),
-		ScreenWidth:  getUInt16QueryParam(query.Get("w")),
-		ScreenHeight: getUInt16QueryParam(query.Get("h")),
+		Title:        strings.TrimSpace(query.Get("title")),
+		Referrer:     getURLQueryParam(query.Get("referrer")),
+		ScreenWidth:  getUInt16QueryParam(query.Get("screen_width")),
+		ScreenHeight: getUInt16QueryParam(query.Get("screen_height")),
 	}
 }
 
@@ -289,6 +289,7 @@ func newSession(r *http.Request, options *HitOptions, fingerprint uint64, now ti
 		UTMContent:     utm.content,
 		UTMTerm:        utm.term,
 	}, &uaInfo
+
 }
 
 func updateSession(options *HitOptions, session *Session, now time.Time, path, title string) uint32 {
