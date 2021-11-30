@@ -1,5 +1,9 @@
 package omisocial
 
+import (
+	"fmt"
+)
+
 // EventOptions are the options to save a new event.
 // The name is required. All other fields are optional.
 type EventOptions struct {
@@ -10,7 +14,7 @@ type EventOptions struct {
 	Duration uint32
 
 	// Meta are optional fields used to break down the events that were send for a name.
-	Meta map[string]string
+	Meta map[string]interface{}
 }
 
 func (options *EventOptions) getMetaData() ([]string, []string) {
@@ -18,7 +22,7 @@ func (options *EventOptions) getMetaData() ([]string, []string) {
 
 	for k, v := range options.Meta {
 		keys = append(keys, k)
-		values = append(values, v)
+		values = append(values, fmt.Sprintf("%v", v))
 	}
 
 	return keys, values
