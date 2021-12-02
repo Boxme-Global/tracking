@@ -23,7 +23,7 @@ func Contains(s []string, str string) bool {
 func main() {
 
 	// Set default clickhouse uri
-	os.Setenv("clickhouse", "10.148.0.23:9000")
+	// os.Setenv("clickhouse", "10.148.0.23:9000")
 	clickhouseUri := os.Getenv("clickhouse")
 
 	// Set the key for SipHash. This should be called on startup (before generating the first fingerprint) and is NOT concurrency save.
