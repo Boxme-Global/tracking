@@ -1,13 +1,14 @@
 package omisocial
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEventOptions_getMetaData(t *testing.T) {
 	options := EventOptions{
-		Meta: map[string]string{
+		Meta: map[string]interface{}{
 			"key":   "value",
 			"hello": "world",
 		},

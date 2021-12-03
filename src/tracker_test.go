@@ -1,13 +1,14 @@
 package omisocial
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTrackerConfig_Validate(t *testing.T) {
@@ -222,9 +223,9 @@ func TestTracker_Event(t *testing.T) {
 	req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0")
 	client := NewMockClient()
 	tracker := NewTracker(client, "salt", nil)
-	tracker.Event(req, EventOptions{Name: "  "}, nil)                                                                                // ignore (invalid name)
-	tracker.Event(req, EventOptions{Name: ""}, nil)                                                                                  // ignore (invalid name)
-	tracker.Event(req, EventOptions{Name: " event  ", Duration: 42, Meta: map[string]string{"hello": "world", "meta": "data"}}, nil) // store duration and meta data
+	tracker.Event(req, EventOptions{Name: "  "}, nil)                                                                                     // ignore (invalid name)
+	tracker.Event(req, EventOptions{Name: ""}, nil)                                                                                       // ignore (invalid name)
+	tracker.Event(req, EventOptions{Name: " event  ", Duration: 42, Meta: map[string]interface{}{"hello": "world", "meta": "data"}}, nil) // store duration and meta data
 	tracker.Stop()
 	assert.Len(t, client.Events, 1)
 	assert.Equal(t, "event", client.Events[0].Name)
