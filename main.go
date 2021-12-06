@@ -147,7 +147,6 @@ func main() {
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
-		return
 	}))
 
 	// And finally, start the server.
