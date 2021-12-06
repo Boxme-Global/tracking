@@ -122,7 +122,6 @@ func main() {
 		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
 
-		log.Println(from, to, site_id, from > to)
 		if from == 0 || to == 0 || site_id == 0 || from > to {
 			jData, _ := json.Marshal(&Response{
 				"Invalid input data",
