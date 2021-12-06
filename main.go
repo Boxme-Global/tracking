@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 
 	omisocial "github.com/Boxme-Global/tracking/src"
 	"github.com/joho/godotenv"
@@ -20,6 +22,12 @@ func Contains(s []string, str string) bool {
 	}
 
 	return false
+}
+
+type Response struct {
+	Message string                   `json:"message"`
+	Error   bool                     `json:"error"`
+	Data    []omisocial.VisitorStats `json:"data"`
 }
 
 func main() {
@@ -73,6 +81,11 @@ func main() {
 
 	// Create a new ClickHouse client to save hits.
 	store, _ := omisocial.NewClient(client_uri, nil)
+	// db, err := sql.Open("clickhouse", client_uri)
+
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// Set up a default tracker with a salt.
 	// This will buffer and store hits and generate sessions by default.
 	tracker := omisocial.NewTracker(store, "BuS7BsvURhatRPqr", nil)
@@ -84,7 +97,7 @@ func main() {
 		eventName := r.URL.Query().Get("event_name")
 		pageloadEvents := []string{"pageload", "pageclose"}
 
-		if Contains(pageloadEvents, eventName) {
+		if eventName != "" && Contains(pageloadEvents, eventName) {
 			tracker.Hit(r, omisocial.HitOptionsFromRequest(r))
 		} else {
 			metaJson := r.URL.Query().Get("event_data")
@@ -100,6 +113,41 @@ func main() {
 		}
 
 		w.Write([]byte("hi"))
+	}))
+
+	http.Handle("/report/visitors", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+
+		log.Println(from, to, site_id, from > to)
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		visitors, _ := analyzer.Visitors(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		jData, _ := json.Marshal(&Response{
+			"",
+			false,
+			visitors,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+		return
 	}))
 
 	// And finally, start the server.

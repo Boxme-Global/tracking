@@ -5,10 +5,11 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go"
 
 	"database/sql"
-	"github.com/jmoiron/sqlx"
 	"log"
 	"os"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // Client is a ClickHouse database client.
@@ -58,6 +59,7 @@ func (client *Client) SavePageViews(pageViews []PageView) error {
 	}
 
 	for _, pageView := range pageViews {
+		log.Println(pageView)
 		_, err := query.Exec(pageView.ClientID,
 			pageView.VisitorID,
 			pageView.SessionID,

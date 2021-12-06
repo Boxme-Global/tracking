@@ -87,7 +87,6 @@ type HitOptions struct {
 // The easiest way to track visitors is to use the Tracker.
 func HitFromRequest(r *http.Request, salt string, options *HitOptions) (*PageView, SessionState, *UserAgent) {
 	now := time.Now().UTC() // capture first to get as close as possible
-
 	if options == nil {
 		return nil, SessionState{}, nil
 	}
@@ -105,7 +104,6 @@ func HitFromRequest(r *http.Request, salt string, options *HitOptions) (*PageVie
 	var sessionState SessionState
 	var timeOnPage uint32
 	var ua *UserAgent
-
 	if session == nil {
 		session, ua = newSession(r, options, fingerprint, now, path, title)
 		sessionState.State = *session
