@@ -30,6 +30,12 @@ type Response struct {
 	Data    []omisocial.VisitorStats `json:"data"`
 }
 
+type ResponseTotalVisitors struct {
+	Message string                       `json:"message"`
+	Error   bool                         `json:"error"`
+	Data    *omisocial.TotalVisitorStats `json:"data"`
+}
+
 func main() {
 	omisocial.SetFingerprintKeys(42, 123)
 	err := godotenv.Load()
@@ -143,6 +149,39 @@ func main() {
 			"",
 			false,
 			visitors,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/total_visitors", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		growth, _ := analyzer.TotalVisitors(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		jData, _ := json.Marshal(&ResponseTotalVisitors{
+			"",
+			false,
+			growth,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)

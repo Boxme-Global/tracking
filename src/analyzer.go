@@ -146,6 +146,7 @@ func (analyzer *Analyzer) Visitors(filter *Filter) ([]VisitorStats, error) {
 		fieldDay,
 		fieldVisitors,
 	})
+
 	var stats []VisitorStats
 
 	if err := analyzer.store.Select(&stats, query, args...); err != nil {
