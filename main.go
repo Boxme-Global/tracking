@@ -30,10 +30,28 @@ type Response struct {
 	Data    []omisocial.VisitorStats `json:"data"`
 }
 
+type ResponsePages struct {
+	Message string                `json:"message"`
+	Error   bool                  `json:"error"`
+	Data    []omisocial.PageStats `json:"data"`
+}
+
 type ResponseTotalVisitors struct {
 	Message string                       `json:"message"`
 	Error   bool                         `json:"error"`
 	Data    *omisocial.TotalVisitorStats `json:"data"`
+}
+
+type ResponseReferrers struct {
+	Message string                    `json:"message"`
+	Error   bool                      `json:"error"`
+	Data    []omisocial.ReferrerStats `json:"data"`
+}
+
+type ResponseUTMSources struct {
+	Message string                     `json:"message"`
+	Error   bool                       `json:"error"`
+	Data    []omisocial.UTMSourceStats `json:"data"`
 }
 
 func main() {
@@ -154,7 +172,78 @@ func main() {
 		w.Write(jData)
 	}))
 
-	http.Handle("/report/total_visitors", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/report/total-visitors", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		platform := r.URL.Query().Get("platform")
+
+		if from == 0 || to == 0 || site_id == 0 || from > to ||
+			(platform != "" && !Contains([]string{omisocial.PlatformDesktop, omisocial.PlatformMobile}, platform)) {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		growth, _ := analyzer.TotalVisitors(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+			Platform: platform,
+		})
+
+		jData, _ := json.Marshal(&ResponseTotalVisitors{
+			"",
+			false,
+			growth,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/pages", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		path_pattern := r.URL.Query().Get("path_pattern")
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		pages, _ := analyzer.Pages(&omisocial.Filter{
+			From:        time.Unix(from, 0),
+			To:          time.Unix(to, 0),
+			ClientID:    site_id,
+			PathPattern: path_pattern,
+		})
+
+		jData, _ := json.Marshal(&ResponsePages{
+			"",
+			false,
+			pages,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/referrers", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		analyzer := omisocial.NewAnalyzer(store)
 
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
@@ -172,16 +261,49 @@ func main() {
 			return
 		}
 
-		growth, _ := analyzer.TotalVisitors(&omisocial.Filter{
+		referrers, _ := analyzer.Referrer(&omisocial.Filter{
 			From:     time.Unix(from, 0),
 			To:       time.Unix(to, 0),
 			ClientID: site_id,
 		})
 
-		jData, _ := json.Marshal(&ResponseTotalVisitors{
+		jData, _ := json.Marshal(&ResponseReferrers{
 			"",
 			false,
-			growth,
+			referrers,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/utm-sources", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		sources, _ := analyzer.UTMSource(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		jData, _ := json.Marshal(&ResponseUTMSources{
+			"",
+			false,
+			sources,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
