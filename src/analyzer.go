@@ -269,6 +269,7 @@ func (analyzer *Analyzer) Pages(filter *Filter) ([]PageStats, error) {
 		fieldPath,
 	}
 	orderBy := []field{
+		fieldViews,
 		fieldVisitors,
 		fieldPath,
 	}

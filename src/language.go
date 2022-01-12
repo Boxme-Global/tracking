@@ -1,9 +1,10 @@
 package omisocial
 
 import (
-	iso6391 "github.com/emvi/iso-639-1"
 	"net/http"
 	"strings"
+
+	iso6391 "github.com/emvi/iso-639-1"
 )
 
 func getLanguage(r *http.Request) string {

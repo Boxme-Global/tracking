@@ -11,9 +11,11 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jmoiron/sqlx v1.3.4
-	github.com/joho/godotenv v1.4.0 // indirect
+	github.com/joho/godotenv v1.4.0
+	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lib/pq v1.10.4
 	github.com/oschwald/maxminddb-golang v1.8.0
+	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
