@@ -156,6 +156,34 @@ func (analyzer *Analyzer) Visitors(filter *Filter) ([]VisitorStats, error) {
 	return stats, nil
 }
 
+// Visitors returns the visitor count, session count, bounce rate, and views grouped by day.
+func (analyzer *Analyzer) PlatformVisitors(filter *Filter) ([]PlatformVisitorStats, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldDesktop,
+		fieldMobile,
+		fieldVisitors,
+		fieldSessions,
+		fieldViews,
+		fieldBounces,
+		fieldBounceRate,
+	}, []field{
+		fieldDesktop,
+		fieldMobile,
+	}, []field{
+		fieldDesktop,
+		fieldMobile,
+		fieldVisitors,
+	})
+
+	var stats []PlatformVisitorStats
+
+	if err := analyzer.store.Select(&stats, query, args...); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
 // Growth returns the growth rate for visitor count, session count, bounces, views, and average session duration or average time on page (if path is set).
 // The growth rate is relative to the previous time range or day.
 // The period or day for the filter must be set, else an error is returned.

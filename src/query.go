@@ -139,7 +139,7 @@ var (
 		querySessions:  "browser_version",
 		queryPageViews: "browser_version",
 		queryDirection: "ASC",
-		name:           "browser_version",
+		name:           "browser_verfieldDaysion",
 	}
 	fieldOS = field{
 		querySessions:  "os",
@@ -227,6 +227,18 @@ var (
 		querySessions:  "ifNull(toUInt64(avg(nullIf(duration_seconds, 0))), 0)",
 		queryPageViews: "ifNull(toUInt64(avg(nullIf(duration_seconds, 0))), 0)",
 		name:           "average_time_spent_seconds",
+	}
+	fieldDesktop = field{
+		querySessions:  "desktop",
+		queryPageViews: "desktop",
+		queryDirection: "DESC",
+		name:           "desktop",
+	}
+	fieldMobile = field{
+		querySessions:  "mobile",
+		queryPageViews: "mobile",
+		queryDirection: "DESC",
+		name:           "mobile",
 	}
 )
 

@@ -154,6 +154,17 @@ type TotalVisitorStats struct {
 	BounceRate float64 `db:"bounce_rate" json:"bounce_rate"`
 }
 
+// VisitorPlatformStats is the result type for total visitor group by platform.
+type PlatformVisitorStats struct {
+	Desktop    bool    `json:"desktop"`
+	Mobile     bool    `json:"mobile"`
+	Visitors   int     `json:"visitors"`
+	Views      int     `json:"views"`
+	Sessions   int     `json:"sessions"`
+	Bounces    int     `json:"bounces"`
+	BounceRate float64 `db:"bounce_rate" json:"bounce_rate"`
+}
+
 // VisitorStats is the result type for visitor statistics.
 type VisitorStats struct {
 	Day        time.Time `json:"day"`
@@ -191,6 +202,7 @@ type PageStats struct {
 	RelativeViews           float64 `db:"relative_views" json:"relative_views"`
 	BounceRate              float64 `db:"bounce_rate" json:"bounce_rate"`
 	AverageTimeSpentSeconds int     `db:"average_time_spent_seconds" json:"average_time_spent_seconds"`
+	UTMSource               string  `db:"utm_source" json:"utm_source"`
 }
 
 // EntryStats is the result type for entry page statistics.

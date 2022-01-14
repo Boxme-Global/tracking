@@ -48,6 +48,18 @@ type ResponseReferrers struct {
 	Data    []omisocial.ReferrerStats `json:"data"`
 }
 
+type ResponsePlatformVisitors struct {
+	Message string                           `json:"message"`
+	Error   bool                             `json:"error"`
+	Data    []omisocial.PlatformVisitorStats `json:"data"`
+}
+
+type ResponseEvents struct {
+	Message string                 `json:"message"`
+	Error   bool                   `json:"error"`
+	Data    []omisocial.EventStats `json:"data"`
+}
+
 type ResponseUTMSources struct {
 	Message string                     `json:"message"`
 	Error   bool                       `json:"error"`
@@ -178,10 +190,8 @@ func main() {
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
 		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
-		platform := r.URL.Query().Get("platform")
 
-		if from == 0 || to == 0 || site_id == 0 || from > to ||
-			(platform != "" && !Contains([]string{omisocial.PlatformDesktop, omisocial.PlatformMobile}, platform)) {
+		if from == 0 || to == 0 || site_id == 0 || from > to {
 			jData, _ := json.Marshal(&Response{
 				"Invalid input data",
 				true,
@@ -196,13 +206,45 @@ func main() {
 			From:     time.Unix(from, 0),
 			To:       time.Unix(to, 0),
 			ClientID: site_id,
-			Platform: platform,
 		})
 
 		jData, _ := json.Marshal(&ResponseTotalVisitors{
 			"",
 			false,
 			growth,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/platforms", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		platforms, _ := analyzer.PlatformVisitors(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		jData, _ := json.Marshal(&ResponsePlatformVisitors{
+			"",
+			false,
+			platforms,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -276,7 +318,7 @@ func main() {
 		w.Write(jData)
 	}))
 
-	http.Handle("/report/utm-sources", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/report/events", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		analyzer := omisocial.NewAnalyzer(store)
 
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
@@ -294,10 +336,45 @@ func main() {
 			return
 		}
 
-		sources, _ := analyzer.UTMSource(&omisocial.Filter{
+		events, _ := analyzer.Events(&omisocial.Filter{
 			From:     time.Unix(from, 0),
 			To:       time.Unix(to, 0),
 			ClientID: site_id,
+		})
+
+		jData, _ := json.Marshal(&ResponseEvents{
+			"",
+			false,
+			events,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/utm-sources", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		utm_source := r.URL.Query().Get("utm_source")
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		sources, _ := analyzer.UTMSource(&omisocial.Filter{
+			From:      time.Unix(from, 0),
+			To:        time.Unix(to, 0),
+			ClientID:  site_id,
+			UTMSource: utm_source,
 		})
 
 		jData, _ := json.Marshal(&ResponseUTMSources{
