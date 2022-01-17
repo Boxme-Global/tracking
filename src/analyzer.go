@@ -345,6 +345,19 @@ func (analyzer *Analyzer) Pages(filter *Filter) ([]PageStats, error) {
 	return stats, nil
 }
 
+// Pagecount returns the count on page grouped by path.
+func (analyzer *Analyzer) PageCount(filter *Filter) (int, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldPath,
+	}, []field{
+		fieldPath,
+	}, nil)
+
+	query = fmt.Sprintf(`SELECT count() count FROM (%s)`, query)
+	count, err := analyzer.store.Count(query, args...)
+	return count, err
+}
+
 // EntryPages returns the visitor count and time on page grouped by path and (optional) page title for the first page visited.
 func (analyzer *Analyzer) EntryPages(filter *Filter) ([]EntryStats, error) {
 	filter = analyzer.getFilter(filter)
@@ -763,6 +776,19 @@ func (analyzer *Analyzer) UTMSource(filter *Filter) ([]UTMSourceStats, error) {
 	}
 
 	return stats, nil
+}
+
+// UTMSourceCount returns the count on utmsource grouped by path.
+func (analyzer *Analyzer) UTMSourceCount(filter *Filter) (int, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldUTMSource,
+	}, []field{
+		fieldUTMSource,
+	}, nil)
+
+	query = fmt.Sprintf(`SELECT count() count FROM (%s)`, query)
+	count, err := analyzer.store.Count(query, args...)
+	return count, err
 }
 
 // UTMMedium returns the visitor count grouped by utm medium.

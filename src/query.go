@@ -359,6 +359,7 @@ func buildQuery(filter *Filter, fields, groupBy, orderBy []field) ([]interface{}
 	}
 
 	query.WriteString(filter.withLimit())
+	query.WriteString(filter.withOffset())
 	return args, query.String()
 }
 

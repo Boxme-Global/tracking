@@ -1,9 +1,10 @@
 package omisocial
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFilter_Validate(t *testing.T) {
