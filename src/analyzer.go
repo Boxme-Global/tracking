@@ -156,6 +156,34 @@ func (analyzer *Analyzer) Visitors(filter *Filter) ([]VisitorStats, error) {
 	return stats, nil
 }
 
+// Visitors returns the visitor count, session count, bounce rate, and views grouped by day.
+func (analyzer *Analyzer) PlatformVisitors(filter *Filter) ([]PlatformVisitorStats, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldDesktop,
+		fieldMobile,
+		fieldVisitors,
+		fieldSessions,
+		fieldViews,
+		fieldBounces,
+		fieldBounceRate,
+	}, []field{
+		fieldDesktop,
+		fieldMobile,
+	}, []field{
+		fieldDesktop,
+		fieldMobile,
+		fieldVisitors,
+	})
+
+	var stats []PlatformVisitorStats
+
+	if err := analyzer.store.Select(&stats, query, args...); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
 // Growth returns the growth rate for visitor count, session count, bounces, views, and average session duration or average time on page (if path is set).
 // The growth rate is relative to the previous time range or day.
 // The period or day for the filter must be set, else an error is returned.
@@ -315,6 +343,19 @@ func (analyzer *Analyzer) Pages(filter *Filter) ([]PageStats, error) {
 	}
 
 	return stats, nil
+}
+
+// Pagecount returns the count on page grouped by path.
+func (analyzer *Analyzer) PageCount(filter *Filter) (int, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldPath,
+	}, []field{
+		fieldPath,
+	}, nil)
+
+	query = fmt.Sprintf(`SELECT count() count FROM (%s)`, query)
+	count, err := analyzer.store.Count(query, args...)
+	return count, err
 }
 
 // EntryPages returns the visitor count and time on page grouped by path and (optional) page title for the first page visited.
@@ -735,6 +776,19 @@ func (analyzer *Analyzer) UTMSource(filter *Filter) ([]UTMSourceStats, error) {
 	}
 
 	return stats, nil
+}
+
+// UTMSourceCount returns the count on utmsource grouped by path.
+func (analyzer *Analyzer) UTMSourceCount(filter *Filter) (int, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldUTMSource,
+	}, []field{
+		fieldUTMSource,
+	}, nil)
+
+	query = fmt.Sprintf(`SELECT count() count FROM (%s)`, query)
+	count, err := analyzer.store.Count(query, args...)
+	return count, err
 }
 
 // UTMMedium returns the visitor count grouped by utm medium.

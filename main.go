@@ -31,9 +31,13 @@ type Response struct {
 }
 
 type ResponsePages struct {
-	Message string                `json:"message"`
-	Error   bool                  `json:"error"`
-	Data    []omisocial.PageStats `json:"data"`
+	Message    string                `json:"message"`
+	Error      bool                  `json:"error"`
+	TotalPages int                   `json:"total_pages"`
+	Count      int                   `json:"count"`
+	Page       int                   `json:"page"`
+	PageSize   int                   `json:"page_size"`
+	Data       []omisocial.PageStats `json:"data"`
 }
 
 type ResponseTotalVisitors struct {
@@ -48,10 +52,26 @@ type ResponseReferrers struct {
 	Data    []omisocial.ReferrerStats `json:"data"`
 }
 
+type ResponsePlatformVisitors struct {
+	Message string                           `json:"message"`
+	Error   bool                             `json:"error"`
+	Data    []omisocial.PlatformVisitorStats `json:"data"`
+}
+
+type ResponseEvents struct {
+	Message string                 `json:"message"`
+	Error   bool                   `json:"error"`
+	Data    []omisocial.EventStats `json:"data"`
+}
+
 type ResponseUTMSources struct {
-	Message string                     `json:"message"`
-	Error   bool                       `json:"error"`
-	Data    []omisocial.UTMSourceStats `json:"data"`
+	Message    string                     `json:"message"`
+	Error      bool                       `json:"error"`
+	TotalPages int                        `json:"total_pages"`
+	Count      int                        `json:"count"`
+	Page       int                        `json:"page"`
+	PageSize   int                        `json:"page_size"`
+	Data       []omisocial.UTMSourceStats `json:"data"`
 }
 
 func main() {
@@ -178,10 +198,8 @@ func main() {
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
 		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
-		platform := r.URL.Query().Get("platform")
 
-		if from == 0 || to == 0 || site_id == 0 || from > to ||
-			(platform != "" && !Contains([]string{omisocial.PlatformDesktop, omisocial.PlatformMobile}, platform)) {
+		if from == 0 || to == 0 || site_id == 0 || from > to {
 			jData, _ := json.Marshal(&Response{
 				"Invalid input data",
 				true,
@@ -196,7 +214,6 @@ func main() {
 			From:     time.Unix(from, 0),
 			To:       time.Unix(to, 0),
 			ClientID: site_id,
-			Platform: platform,
 		})
 
 		jData, _ := json.Marshal(&ResponseTotalVisitors{
@@ -208,13 +225,12 @@ func main() {
 		w.Write(jData)
 	}))
 
-	http.Handle("/report/pages", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/report/platforms", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		analyzer := omisocial.NewAnalyzer(store)
 
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
 		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
-		path_pattern := r.URL.Query().Get("path_pattern")
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
 			jData, _ := json.Marshal(&Response{
@@ -227,16 +243,77 @@ func main() {
 			return
 		}
 
-		pages, _ := analyzer.Pages(&omisocial.Filter{
+		platforms, _ := analyzer.PlatformVisitors(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		jData, _ := json.Marshal(&ResponsePlatformVisitors{
+			"",
+			false,
+			platforms,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/pages", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		path_pattern := r.URL.Query().Get("path_pattern")
+		page, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 64)
+		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		count, _ := analyzer.PageCount(&omisocial.Filter{
 			From:        time.Unix(from, 0),
 			To:          time.Unix(to, 0),
 			ClientID:    site_id,
 			PathPattern: path_pattern,
 		})
 
+		var total_pages = int64(count) / int64(page_size)
+
+		if page < 1 {
+			page = 1
+		}
+
+		if page > total_pages {
+			page = total_pages
+		}
+
+		offset := (int(page) - 1) * int(page_size)
+
+		pages, _ := analyzer.Pages(&omisocial.Filter{
+			From:        time.Unix(from, 0),
+			To:          time.Unix(to, 0),
+			ClientID:    site_id,
+			PathPattern: path_pattern,
+			Limit:       int(page_size),
+			Offset:      int(offset),
+		})
+
 		jData, _ := json.Marshal(&ResponsePages{
 			"",
 			false,
+			int(total_pages),
+			count,
+			int(page),
+			int(page_size),
 			pages,
 		})
 		w.Header().Set("Content-Type", "application/json")
@@ -276,7 +353,7 @@ func main() {
 		w.Write(jData)
 	}))
 
-	http.Handle("/report/utm-sources", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/report/events", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		analyzer := omisocial.NewAnalyzer(store)
 
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
@@ -294,15 +371,74 @@ func main() {
 			return
 		}
 
-		sources, _ := analyzer.UTMSource(&omisocial.Filter{
+		events, _ := analyzer.Events(&omisocial.Filter{
 			From:     time.Unix(from, 0),
 			To:       time.Unix(to, 0),
 			ClientID: site_id,
 		})
 
+		jData, _ := json.Marshal(&ResponseEvents{
+			"",
+			false,
+			events,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/utm-sources", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		page, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 64)
+		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		count, _ := analyzer.UTMSourceCount(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		var total_pages = int64(count) / int64(page_size)
+
+		if page < 1 {
+			page = 1
+		}
+
+		if page > total_pages {
+			page = total_pages
+		}
+
+		offset := (int(page) - 1) * int(page_size)
+
+		sources, _ := analyzer.UTMSource(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+			Limit:    int(page_size),
+			Offset:   int(offset),
+		})
+
 		jData, _ := json.Marshal(&ResponseUTMSources{
 			"",
 			false,
+			int(total_pages),
+			count,
+			int(page),
+			int(page_size),
 			sources,
 		})
 		w.Header().Set("Content-Type", "application/json")

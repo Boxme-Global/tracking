@@ -124,6 +124,9 @@ type Filter struct {
 	// Limit limits the number of results. Less or equal to zero means no limit.
 	Limit int
 
+	// Offset the number of result.
+	Offset int
+
 	// IncludeTitle indicates that the Analyzer.Pages, Analyzer.EntryPages, and Analyzer.ExitPages should contain the page title.
 	IncludeTitle bool
 
@@ -376,7 +379,13 @@ func (filter *Filter) withLimit() string {
 	if filter.Limit > 0 {
 		return fmt.Sprintf("LIMIT %d ", filter.Limit)
 	}
+	return ""
+}
 
+func (filter *Filter) withOffset() string {
+	if filter.Offset > 0 {
+		return fmt.Sprintf("OFFSET %d ", filter.Offset)
+	}
 	return ""
 }
 
