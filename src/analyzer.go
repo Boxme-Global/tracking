@@ -549,7 +549,7 @@ func (analyzer *Analyzer) Events(filter *Filter) ([]EventStats, error) {
 	return stats, nil
 }
 
-// EventDays returns the visitor count, views, and conversion rate for events group by group_by.
+// GroupEvents returns the visitor count, views, and conversion rate for events group by group_by.
 func (analyzer *Analyzer) GroupEvents(filter *Filter, group_by string) ([]GroupEventStats, error) {
 	filter = analyzer.getFilter(filter)
 	filter.eventFilter = true
