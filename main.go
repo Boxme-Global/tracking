@@ -74,6 +74,24 @@ type ResponseUTMSources struct {
 	Data       []omisocial.UTMSourceStats `json:"data"`
 }
 
+type GroupEvent struct {
+	Name     string  `json:"name"`
+	Visitors int     `json:"visitors"`
+	Views    int     `json:"views"`
+	CR       float64 `json:"cr"`
+}
+
+type GroupEvents struct {
+	Time   string       `json:"time"`
+	Events []GroupEvent `json:"events"`
+}
+
+type ResponseGroupEvents struct {
+	Message string        `json:"message"`
+	Error   bool          `json:"error"`
+	Data    []GroupEvents `json:"data"`
+}
+
 func main() {
 	omisocial.SetFingerprintKeys(42, 123)
 	err := godotenv.Load()
@@ -381,6 +399,60 @@ func main() {
 			"",
 			false,
 			events,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/group-events", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		group_by := r.URL.Query().Get("group_by")
+
+		groups := []string{"day", "week", "month"}
+		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !Contains(groups, group_by)) {
+			jData, _ := json.Marshal(&Response{
+				"Invalid input data",
+				true,
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		events, _ := analyzer.GroupEvents(
+			&omisocial.Filter{
+				From:     time.Unix(from, 0),
+				To:       time.Unix(to, 0),
+				ClientID: site_id,
+			},
+			group_by,
+		)
+
+		group_events := map[string]GroupEvents{}
+		for _, event := range events {
+			if val, ok := group_events[event.GroupTime]; ok {
+				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views, event.CR})
+				group_events[val.Time] = val
+			} else {
+				group_event := GroupEvents{Time: event.GroupTime, Events: []GroupEvent{{event.Name, event.Visitors, event.Views, event.CR}}}
+				group_events[event.GroupTime] = group_event
+			}
+		}
+
+		data := []GroupEvents{}
+		for _, group_event := range group_events {
+			data = append(data, group_event)
+		}
+
+		jData, _ := json.Marshal(&ResponseGroupEvents{
+			"",
+			false,
+			data,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)

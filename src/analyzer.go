@@ -549,6 +549,46 @@ func (analyzer *Analyzer) Events(filter *Filter) ([]EventStats, error) {
 	return stats, nil
 }
 
+// GroupEvents returns the visitor count, views, and conversion rate for events group by group_by.
+func (analyzer *Analyzer) GroupEvents(filter *Filter, group_by string) ([]GroupEventStats, error) {
+	filter = analyzer.getFilter(filter)
+	filter.eventFilter = true
+	outerFilterArgs, outerFilterQuery := filter.query()
+	innerFilterArgs, innerFilterQuery := filter.queryTime()
+	innerFilterArgs = append(innerFilterArgs, outerFilterArgs...)
+
+	if group_by == "" {
+		group_by = "day"
+	}
+	group := map[string]string{
+		"day":   "toDate(time, 'UTC')",
+		"week":  "toWeek(time, 1, 'UTC')",
+		"month": "toMonth(time, 'UTC')",
+	}
+	query := fmt.Sprintf(`SELECT %s group_time, event_name,
+		count(DISTINCT visitor_id) visitors,
+		count(1) views,
+		visitors / greatest((
+			SELECT uniq(visitor_id)
+			FROM session
+			WHERE %s
+		), 1) cr,
+		ifNull(toUInt64(avg(nullIf(duration_seconds, 0))), 0) average_duration_seconds,
+		groupUniqArrayArray(event_meta_keys) meta_keys
+		FROM event
+		WHERE %s
+		GROUP BY group_time, event_name
+		ORDER BY visitors DESC, group_time, event_name
+		%s`, group[group_by], innerFilterQuery, outerFilterQuery, filter.withLimit())
+	var stats []GroupEventStats
+
+	if err := analyzer.store.Select(&stats, query, innerFilterArgs...); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
 // EventBreakdown returns the visitor count, views, and conversion rate for a custom event grouping them by a meta value for given key.
 // The Filter.EventName and Filter.EventMetaKey must be set, or otherwise the result set will be empty.
 func (analyzer *Analyzer) EventBreakdown(filter *Filter) ([]EventStats, error) {
