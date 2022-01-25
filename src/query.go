@@ -207,21 +207,37 @@ var (
 		queryDirection: "ASC",
 		name:           "title",
 	}
+	fieldHour = field{
+		querySessions:  "toHour(time, '%s')",
+		queryPageViews: "toHour(time, '%s')",
+		queryDirection: "ASC",
+		queryWithFill:  "WITH FILL FROM toHour(toDate(?), '%s') TO toHour(toDate(?), '%s')",
+		timezone:       true,
+		name:           "hour",
+	}
 	fieldDay = field{
 		querySessions:  "toDate(time, '%s')",
 		queryPageViews: "toDate(time, '%s')",
 		queryDirection: "ASC",
 		withFill:       true,
 		timezone:       true,
-		name:           "day",
+		name:           "period",
 	}
-	fieldHour = field{
-		querySessions:  "toHour(time, '%s')",
-		queryPageViews: "toHour(time, '%s')",
+	fieldWeek = field{
+		querySessions:  "toWeek(time, 9, '%s')",
+		queryPageViews: "toWeek(time, 9, '%s')",
 		queryDirection: "ASC",
-		queryWithFill:  "WITH FILL FROM 0 TO 24",
+		queryWithFill:  "WITH FILL FROM toWeek(toDate(?), 9, '%s') TO toWeek(toDate(?), 9, '%s')",
 		timezone:       true,
-		name:           "hour",
+		name:           "period",
+	}
+	fieldMonth = field{
+		querySessions:  "toMonth(time, '%s')",
+		queryPageViews: "toMonth(time, '%s')",
+		queryDirection: "ASC",
+		queryWithFill:  "WITH FILL FROM toMonth(toDate(?), '%s') TO toMonth(toDate(?), '%s')",
+		timezone:       true,
+		name:           "period",
 	}
 	fieldEventTimeSpent = field{
 		querySessions:  "ifNull(toUInt64(avg(nullIf(duration_seconds, 0))), 0)",
@@ -433,7 +449,13 @@ func joinOrderBy(args *[]interface{}, filter *Filter, fields []field) string {
 
 	for i := range fields {
 		if fields[i].queryWithFill != "" {
-			out.WriteString(fmt.Sprintf(`%s %s %s,`, fields[i].name, fields[i].queryDirection, fields[i].queryWithFill))
+			queryFill := fields[i].queryWithFill
+			if fields[i].timezone {
+				queryFill = fmt.Sprintf(fields[i].queryWithFill, filter.Timezone.String(), filter.Timezone.String())
+			}
+			fillArgs := []interface{}{filter.From, filter.To}
+			*args = append(*args, fillArgs...)
+			out.WriteString(fmt.Sprintf(`%s %s %s,`, fields[i].name, fields[i].queryDirection, queryFill))
 		} else if fields[i].withFill {
 			fillArgs, fillQuery := filter.withFill()
 			*args = append(*args, fillArgs...)

@@ -167,12 +167,12 @@ type PlatformVisitorStats struct {
 
 // VisitorStats is the result type for visitor statistics.
 type VisitorStats struct {
-	Day        time.Time `json:"day"`
-	Visitors   int       `json:"visitors"`
-	Views      int       `json:"views"`
-	Sessions   int       `json:"sessions"`
-	Bounces    int       `json:"bounces"`
-	BounceRate float64   `db:"bounce_rate" json:"bounce_rate"`
+	Period     string  `db:"period" json:"period"`
+	Visitors   int     `json:"visitors"`
+	Views      int     `json:"views"`
+	Sessions   int     `json:"sessions"`
+	Bounces    int     `json:"bounces"`
+	BounceRate float64 `db:"bounce_rate" json:"bounce_rate"`
 }
 
 // Growth represents the visitors, views, sessions, bounces, and average session duration growth between two time periods.
@@ -228,9 +228,8 @@ type ExitStats struct {
 
 // PageConversionsStats is the result type for page conversions.
 type PageConversionsStats struct {
-	Visitors int     `json:"visitors"`
-	Views    int     `json:"views"`
-	CR       float64 `json:"cr"`
+	Visitors int `json:"visitors"`
+	Views    int `json:"views"`
 }
 
 // EventStats is the result type for custom events.
@@ -246,14 +245,11 @@ type EventStats struct {
 
 // GroupEventStats is the result type for custom events.
 type GroupEventStats struct {
-	GroupTime              string   `db:"group_time" json:"time"`
-	Name                   string   `db:"event_name" json:"name"`
-	Visitors               int      `json:"visitors"`
-	Views                  int      `json:"views"`
-	CR                     float64  `json:"cr"`
-	AverageDurationSeconds int      `db:"average_duration_seconds" json:"average_duration_seconds"`
-	MetaKeys               []string `db:"meta_keys" json:"meta_keys"`
-	MetaValue              string   `db:"meta_value" json:"meta_value"`
+	Period    string `db:"period" json:"period"`
+	Name      string `db:"event_name" json:"name"`
+	Visitors  int    `json:"visitors"`
+	Views     int    `json:"views"`
+	MetaValue string `db:"meta_value" json:"meta_value"`
 }
 
 // ReferrerStats is the result type for referrer statistics.

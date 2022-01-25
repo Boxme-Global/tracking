@@ -132,18 +132,25 @@ func (analyzer *Analyzer) TotalVisitors(filter *Filter) (*TotalVisitorStats, err
 }
 
 // Visitors returns the visitor count, session count, bounce rate, and views grouped by day.
-func (analyzer *Analyzer) Visitors(filter *Filter) ([]VisitorStats, error) {
+func (analyzer *Analyzer) Visitors(filter *Filter, group_by string) ([]VisitorStats, error) {
+	group_by_field := fieldDay
+	if group_by == "week" {
+		group_by_field = fieldWeek
+	}
+	if group_by == "month" {
+		group_by_field = fieldMonth
+	}
 	args, query := buildQuery(analyzer.getFilter(filter), []field{
-		fieldDay,
+		group_by_field,
 		fieldVisitors,
 		fieldSessions,
 		fieldViews,
 		fieldBounces,
 		fieldBounceRate,
 	}, []field{
-		fieldDay,
+		group_by_field,
 	}, []field{
-		fieldDay,
+		group_by_field,
 		fieldVisitors,
 	})
 
@@ -553,36 +560,37 @@ func (analyzer *Analyzer) Events(filter *Filter) ([]EventStats, error) {
 func (analyzer *Analyzer) GroupEvents(filter *Filter, group_by string) ([]GroupEventStats, error) {
 	filter = analyzer.getFilter(filter)
 	filter.eventFilter = true
-	outerFilterArgs, outerFilterQuery := filter.query()
-	innerFilterArgs, innerFilterQuery := filter.queryTime()
-	innerFilterArgs = append(innerFilterArgs, outerFilterArgs...)
+	filterArgs, outerFilterQuery := filter.query()
+	fillArgs := []interface{}{filter.From, filter.To}
+	filterArgs = append(filterArgs, fillArgs...)
 
 	if group_by == "" {
 		group_by = "day"
 	}
-	group := map[string]string{
-		"day":   "toDate(time, 'UTC')",
-		"week":  "toWeek(time, 1, 'UTC')",
-		"month": "toMonth(time, 'UTC')",
+	group_field := map[string]string{
+		"day":   fmt.Sprintf(`toDate(time, '%s')`, filter.Timezone.String()),
+		"week":  fmt.Sprintf(`toWeek(time, 9, '%s')`, filter.Timezone.String()),
+		"month": fmt.Sprintf(`toMonth(time, '%s')`, filter.Timezone.String()),
 	}
-	query := fmt.Sprintf(`SELECT %s group_time, event_name,
+	group_fill := map[string]string{
+		"day":   fmt.Sprintf(`toDate(?, '%s')`, filter.Timezone.String()),
+		"week":  fmt.Sprintf(`toWeek(?, 9, '%s')`, filter.Timezone.String()),
+		"month": fmt.Sprintf(`toMonth(?, '%s')`, filter.Timezone.String()),
+	}
+	query := fmt.Sprintf(`SELECT %s period, event_name,
 		count(DISTINCT visitor_id) visitors,
-		count(1) views,
-		visitors / greatest((
-			SELECT uniq(visitor_id)
-			FROM session
-			WHERE %s
-		), 1) cr,
-		ifNull(toUInt64(avg(nullIf(duration_seconds, 0))), 0) average_duration_seconds,
-		groupUniqArrayArray(event_meta_keys) meta_keys
+		count(1) views
 		FROM event
 		WHERE %s
-		GROUP BY group_time, event_name
-		ORDER BY visitors DESC, group_time, event_name
-		%s`, group[group_by], innerFilterQuery, outerFilterQuery, filter.withLimit())
+		GROUP BY period, event_name
+		ORDER BY period ASC WITH FILL FROM %s TO %s, event_name DESC, visitors DESC
+		%s`, group_field[group_by], outerFilterQuery,
+		group_fill[group_by], group_fill[group_by],
+		filter.withLimit(),
+	)
 	var stats []GroupEventStats
 
-	if err := analyzer.store.Select(&stats, query, innerFilterArgs...); err != nil {
+	if err := analyzer.store.Select(&stats, query, filterArgs...); err != nil {
 		return nil, err
 	}
 
