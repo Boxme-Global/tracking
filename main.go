@@ -55,9 +55,13 @@ type ResponseTotalVisitors struct {
 }
 
 type ResponseReferrers struct {
-	Message string                    `json:"message"`
-	Error   bool                      `json:"error"`
-	Data    []omisocial.ReferrerStats `json:"data"`
+	Message    string                    `json:"message"`
+	Error      bool                      `json:"error"`
+	TotalPages int                       `json:"total_pages"`
+	Count      int                       `json:"count"`
+	Page       int                       `json:"page"`
+	PageSize   int                       `json:"page_size"`
+	Data       []omisocial.ReferrerStats `json:"data"`
 }
 
 type ResponsePlatformVisitors struct {
@@ -387,6 +391,8 @@ func main() {
 		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
 		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		page, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 64)
+		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
 			jData, _ := json.Marshal(&Response{
@@ -399,15 +405,58 @@ func main() {
 			return
 		}
 
-		referrers, _ := analyzer.Referrer(&omisocial.Filter{
+		if page < 1 {
+			page = 1
+		}
+
+		if page_size <= 0 {
+			page_size = 25
+		}
+
+		count, _ := analyzer.ReferrerCount(&omisocial.Filter{
 			From:     time.Unix(from, 0),
 			To:       time.Unix(to, 0),
 			ClientID: site_id,
 		})
 
+		if count == 0 {
+			jData, _ := json.Marshal(&ResponseReferrers{
+				"No data",
+				false,
+				0,
+				count,
+				int(page),
+				int(page_size),
+				nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		var total_pages = int64(math.Ceil(float64(count) / float64(page_size)))
+
+		if page > total_pages {
+			page = total_pages
+		}
+
+		offset := (int(page) - 1) * int(page_size)
+
+		referrers, _ := analyzer.Referrer(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+			Limit:    int(page_size),
+			Offset:   int(offset),
+		})
+
 		jData, _ := json.Marshal(&ResponseReferrers{
 			"",
 			false,
+			int(total_pages),
+			count,
+			int(page),
+			int(page_size),
 			referrers,
 		})
 		w.Header().Set("Content-Type", "application/json")

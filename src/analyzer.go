@@ -352,7 +352,7 @@ func (analyzer *Analyzer) Pages(filter *Filter) ([]PageStats, error) {
 	return stats, nil
 }
 
-// Pagecount returns the count on page grouped by path.
+// PageCount returns the count on page grouped by path.
 func (analyzer *Analyzer) PageCount(filter *Filter) (int, error) {
 	args, query := buildQuery(analyzer.getFilter(filter), []field{
 		fieldPath,
@@ -672,6 +672,19 @@ func (analyzer *Analyzer) Referrer(filter *Filter) ([]ReferrerStats, error) {
 	}
 
 	return stats, nil
+}
+
+// ReferrerCount returns the count on referrer.
+func (analyzer *Analyzer) ReferrerCount(filter *Filter) (int, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldReferrerName,
+	}, []field{
+		fieldReferrerName,
+	}, nil)
+
+	query = fmt.Sprintf(`SELECT count() count FROM (%s)`, query)
+	count, err := analyzer.store.Count(query, args...)
+	return count, err
 }
 
 // Platform returns the visitor count grouped by platform.
