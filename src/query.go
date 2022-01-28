@@ -211,7 +211,7 @@ var (
 		querySessions:  "toHour(time, '%s')",
 		queryPageViews: "toHour(time, '%s')",
 		queryDirection: "ASC",
-		queryWithFill:  "WITH FILL FROM toHour(toDate(?), '%s') TO toHour(toDate(?), '%s')",
+		queryWithFill:  "WITH FILL FROM toHour(toDate(?), '%s') TO toHour(toDate(?) + 1, '%s')",
 		timezone:       true,
 		name:           "hour",
 	}
@@ -227,7 +227,7 @@ var (
 		querySessions:  "toWeek(time, 9, '%s')",
 		queryPageViews: "toWeek(time, 9, '%s')",
 		queryDirection: "ASC",
-		queryWithFill:  "WITH FILL FROM toWeek(toDate(?), 9, '%s') TO toWeek(toDate(?), 9, '%s')",
+		queryWithFill:  "WITH FILL FROM toWeek(toDate(?), 9, '%s') TO toWeek(toDate(?) + 1, 9, '%s')",
 		timezone:       true,
 		name:           "period",
 	}
@@ -235,7 +235,7 @@ var (
 		querySessions:  "toMonth(time, '%s')",
 		queryPageViews: "toMonth(time, '%s')",
 		queryDirection: "ASC",
-		queryWithFill:  "WITH FILL FROM toMonth(toDate(?), '%s') TO toMonth(toDate(?), '%s')",
+		queryWithFill:  "WITH FILL FROM toMonth(toDate(?), '%s') TO toMonth(toDate(?) + 1, '%s')",
 		timezone:       true,
 		name:           "period",
 	}
