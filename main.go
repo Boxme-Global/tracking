@@ -90,6 +90,7 @@ type GroupEvent struct {
 	Name     string `json:"name"`
 	Visitors int    `json:"visitors"`
 	Views    int    `json:"views"`
+	Sessions int    `json:"sessions"`
 }
 
 type GroupEvents struct {
@@ -528,10 +529,10 @@ func main() {
 		group_events := map[string]GroupEvents{}
 		for _, event := range events {
 			if val, ok := group_events[event.Period]; ok {
-				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views})
+				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views, event.Sessions})
 				group_events[val.Period] = val
 			} else {
-				group_event := GroupEvents{Period: event.Period, Events: []GroupEvent{{event.Name, event.Visitors, event.Views}}}
+				group_event := GroupEvents{Period: event.Period, Events: []GroupEvent{{event.Name, event.Visitors, event.Views, event.Sessions}}}
 				group_events[event.Period] = group_event
 			}
 		}
@@ -598,10 +599,10 @@ func main() {
 		group_events := map[string]GroupEvents{}
 		for _, event := range events {
 			if val, ok := group_events[event.Period]; ok {
-				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views})
+				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views, event.Sessions})
 				group_events[val.Period] = val
 			} else {
-				group_event := GroupEvents{Period: event.Period, Events: []GroupEvent{{event.Name, event.Visitors, event.Views}}}
+				group_event := GroupEvents{Period: event.Period, Events: []GroupEvent{{event.Name, event.Visitors, event.Views, event.Sessions}}}
 				group_events[event.Period] = group_event
 			}
 		}

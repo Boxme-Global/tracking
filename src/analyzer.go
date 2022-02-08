@@ -579,6 +579,7 @@ func (analyzer *Analyzer) GroupEvents(filter *Filter, group_by string) ([]GroupE
 	}
 	query := fmt.Sprintf(`SELECT %s period, event_name,
 		count(DISTINCT visitor_id) visitors,
+		count(DISTINCT session_id) sessions,
 		count(1) views
 		FROM event
 		WHERE %s
