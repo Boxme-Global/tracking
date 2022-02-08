@@ -249,6 +249,7 @@ type GroupEventStats struct {
 	Name      string `db:"event_name" json:"name"`
 	Visitors  int    `json:"visitors"`
 	Views     int    `json:"views"`
+	Sessions  int    `json:"sessions"`
 	MetaValue string `db:"meta_value" json:"meta_value"`
 }
 
