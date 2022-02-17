@@ -368,3 +368,9 @@ type UTMTermStats struct {
 	MetaStats
 	UTMTerm string `db:"utm_term" json:"utm_term"`
 }
+
+// OTMSourceStats is the result type for otm source statistics.
+type OTMSourceStats struct {
+	MetaStats
+	OTMSource string `db:"otm_source" json:"otm_source"`
+}

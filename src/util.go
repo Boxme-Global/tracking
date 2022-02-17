@@ -38,3 +38,13 @@ func getTimeToMidnightUTC() time.Duration {
 	midnight := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, time.UTC)
 	return midnight.Sub(now)
 }
+
+func Contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}

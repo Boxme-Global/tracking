@@ -584,7 +584,7 @@ func (analyzer *Analyzer) GroupEvents(filter *Filter, group_by string) ([]GroupE
 		FROM event
 		WHERE %s
 		GROUP BY period, event_name
-		ORDER BY period ASC WITH FILL FROM %s TO %s, event_name DESC, visitors DESC
+		ORDER BY period ASC WITH FILL FROM %s TO %s, event_name DESC, sessions DESC
 		%s`, group_field[group_by], outerFilterQuery,
 		group_fill[group_by], group_fill[group_by],
 		filter.withLimit(),
@@ -840,7 +840,7 @@ func (analyzer *Analyzer) UTMSource(filter *Filter) ([]UTMSourceStats, error) {
 	return stats, nil
 }
 
-// UTMSourceCount returns the count on utmsource grouped by path.
+// UTMSourceCount returns the count on utm-source grouped by path.
 func (analyzer *Analyzer) UTMSourceCount(filter *Filter) (int, error) {
 	args, query := buildQuery(analyzer.getFilter(filter), []field{
 		fieldUTMSource,
@@ -895,6 +895,30 @@ func (analyzer *Analyzer) UTMTerm(filter *Filter) ([]UTMTermStats, error) {
 	}
 
 	return stats, nil
+}
+
+// OTMSource returns the visitor count grouped by otm source.
+func (analyzer *Analyzer) OTMSource(filter *Filter) ([]OTMSourceStats, error) {
+	var stats []OTMSourceStats
+
+	if err := analyzer.selectByAttribute(&stats, filter, fieldOTMSource); err != nil {
+		return nil, err
+	}
+
+	return stats, nil
+}
+
+// OTMSourceCount returns the count on otm-source grouped by path.
+func (analyzer *Analyzer) OTMSourceCount(filter *Filter) (int, error) {
+	args, query := buildQuery(analyzer.getFilter(filter), []field{
+		fieldOTMSource,
+	}, []field{
+		fieldOTMSource,
+	}, nil)
+
+	query = fmt.Sprintf(`SELECT count() count FROM (%s)`, query)
+	count, err := analyzer.store.Count(query, args...)
+	return count, err
 }
 
 // OSVersion returns the visitor count grouped by operating systems and version.
