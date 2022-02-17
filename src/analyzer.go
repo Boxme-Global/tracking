@@ -584,7 +584,7 @@ func (analyzer *Analyzer) GroupEvents(filter *Filter, group_by string) ([]GroupE
 		FROM event
 		WHERE %s
 		GROUP BY period, event_name
-		ORDER BY period ASC WITH FILL FROM %s TO %s, event_name DESC, sessions DESC
+		ORDER BY period ASC WITH FILL FROM %s TO %s, visitors DESC, sessions DESC, event_name DESC
 		%s`, group_field[group_by], outerFilterQuery,
 		group_fill[group_by], group_fill[group_by],
 		filter.withLimit(),
