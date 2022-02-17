@@ -16,106 +16,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func Contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
-}
-
-type Response struct {
-	Message string      `json:"message"`
-	Error   bool        `json:"error"`
-	Data    interface{} `json:"data"`
-}
-
-type ResponseVisitors struct {
-	Message string                   `json:"message"`
-	Error   bool                     `json:"error"`
-	Data    []omisocial.VisitorStats `json:"data"`
-}
-
-type ResponsePages struct {
-	Message    string                `json:"message"`
-	Error      bool                  `json:"error"`
-	TotalPages int                   `json:"total_pages"`
-	Count      int                   `json:"count"`
-	Page       int                   `json:"page"`
-	PageSize   int                   `json:"page_size"`
-	Data       []omisocial.PageStats `json:"data"`
-}
-
-type ResponseTotalVisitors struct {
-	Message string                       `json:"message"`
-	Error   bool                         `json:"error"`
-	Data    *omisocial.TotalVisitorStats `json:"data"`
-}
-
-type ResponseReferrers struct {
-	Message    string                    `json:"message"`
-	Error      bool                      `json:"error"`
-	TotalPages int                       `json:"total_pages"`
-	Count      int                       `json:"count"`
-	Page       int                       `json:"page"`
-	PageSize   int                       `json:"page_size"`
-	Data       []omisocial.ReferrerStats `json:"data"`
-}
-
-type ResponsePlatformVisitors struct {
-	Message string                           `json:"message"`
-	Error   bool                             `json:"error"`
-	Data    []omisocial.PlatformVisitorStats `json:"data"`
-}
-
-type ResponseEvents struct {
-	Message string                 `json:"message"`
-	Error   bool                   `json:"error"`
-	Data    []omisocial.EventStats `json:"data"`
-}
-
-type ResponseUTMSources struct {
-	Message    string                     `json:"message"`
-	Error      bool                       `json:"error"`
-	TotalPages int                        `json:"total_pages"`
-	Count      int                        `json:"count"`
-	Page       int                        `json:"page"`
-	PageSize   int                        `json:"page_size"`
-	Data       []omisocial.UTMSourceStats `json:"data"`
-}
-
-type GroupEvent struct {
-	Name     string `json:"name"`
-	Visitors int    `json:"visitors"`
-	Views    int    `json:"views"`
-	Sessions int    `json:"sessions"`
-}
-
-type GroupEvents struct {
-	Period string       `json:"period"`
-	Events []GroupEvent `json:"events"`
-}
-
-type ResponseGroupEvents struct {
-	Message string        `json:"message"`
-	Error   bool          `json:"error"`
-	Data    []GroupEvents `json:"data"`
-}
-
-type OverTime struct {
-	Period   string       `json:"period"`
-	Visitors int          `json:"visitors"`
-	Events   []GroupEvent `json:"events"`
-}
-
-type ResponseOverTime struct {
-	Message string     `json:"message"`
-	Error   bool       `json:"error"`
-	Data    []OverTime `json:"data"`
-}
-
 func main() {
 	omisocial.SetFingerprintKeys(42, 123)
 	err := godotenv.Load()
@@ -183,7 +83,7 @@ func main() {
 		eventName := r.URL.Query().Get("event_name")
 		pageloadEvents := []string{"pageload", "pageclose"}
 
-		if eventName != "" && Contains(pageloadEvents, eventName) {
+		if eventName != "" && omisocial.Contains(pageloadEvents, eventName) {
 			tracker.Hit(r, omisocial.HitOptionsFromRequest(r))
 		} else {
 			metaJson := r.URL.Query().Get("event_data")
@@ -210,11 +110,11 @@ func main() {
 		group_by := r.URL.Query().Get("group_by")
 
 		groups := []string{"day", "week", "month"}
-		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !Contains(groups, group_by)) {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !omisocial.Contains(groups, group_by)) {
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -230,10 +130,10 @@ func main() {
 			group_by,
 		)
 
-		jData, _ := json.Marshal(&ResponseVisitors{
-			"",
-			false,
-			visitors,
+		jData, _ := json.Marshal(&omisocial.ResponseVisitors{
+			Message: "",
+			Error:   false,
+			Data:    visitors,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -247,10 +147,10 @@ func main() {
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -263,10 +163,10 @@ func main() {
 			ClientID: site_id,
 		})
 
-		jData, _ := json.Marshal(&ResponseTotalVisitors{
-			"",
-			false,
-			growth,
+		jData, _ := json.Marshal(&omisocial.ResponseTotalVisitors{
+			Message: "",
+			Error:   false,
+			Data:    growth,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -280,10 +180,10 @@ func main() {
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -296,10 +196,10 @@ func main() {
 			ClientID: site_id,
 		})
 
-		jData, _ := json.Marshal(&ResponsePlatformVisitors{
-			"",
-			false,
-			platforms,
+		jData, _ := json.Marshal(&omisocial.ResponsePlatformVisitors{
+			Message: "",
+			Error:   false,
+			Data:    platforms,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -316,10 +216,10 @@ func main() {
 		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -342,14 +242,14 @@ func main() {
 		})
 
 		if count == 0 {
-			jData, _ := json.Marshal(&ResponsePages{
-				"No data",
-				false,
-				0,
-				count,
-				int(page),
-				int(page_size),
-				nil,
+			jData, _ := json.Marshal(&omisocial.ResponsePages{
+				Message:    "No data",
+				Error:      false,
+				TotalPages: 0,
+				Count:      count,
+				Page:       int(page),
+				PageSize:   int(page_size),
+				Data:       nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -373,14 +273,14 @@ func main() {
 			Offset:      int(offset),
 		})
 
-		jData, _ := json.Marshal(&ResponsePages{
-			"",
-			false,
-			int(total_pages),
-			count,
-			int(page),
-			int(page_size),
-			pages,
+		jData, _ := json.Marshal(&omisocial.ResponsePages{
+			Message:    "",
+			Error:      false,
+			TotalPages: 0,
+			Count:      count,
+			Page:       int(page),
+			PageSize:   int(page_size),
+			Data:       pages,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -396,10 +296,10 @@ func main() {
 		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -421,14 +321,14 @@ func main() {
 		})
 
 		if count == 0 {
-			jData, _ := json.Marshal(&ResponseReferrers{
-				"No data",
-				false,
-				0,
-				count,
-				int(page),
-				int(page_size),
-				nil,
+			jData, _ := json.Marshal(&omisocial.ResponseReferrers{
+				Message:    "No data",
+				Error:      false,
+				TotalPages: 0,
+				Count:      count,
+				Page:       int(page),
+				PageSize:   int(page_size),
+				Data:       nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -451,14 +351,14 @@ func main() {
 			Offset:   int(offset),
 		})
 
-		jData, _ := json.Marshal(&ResponseReferrers{
-			"",
-			false,
-			int(total_pages),
-			count,
-			int(page),
-			int(page_size),
-			referrers,
+		jData, _ := json.Marshal(&omisocial.ResponseReferrers{
+			Message:    "",
+			Error:      false,
+			TotalPages: 0,
+			Count:      count,
+			Page:       int(page),
+			PageSize:   int(page_size),
+			Data:       referrers,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -472,10 +372,10 @@ func main() {
 		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -488,10 +388,10 @@ func main() {
 			ClientID: site_id,
 		})
 
-		jData, _ := json.Marshal(&ResponseEvents{
-			"",
-			false,
-			events,
+		jData, _ := json.Marshal(&omisocial.ResponseEvents{
+			Message: "",
+			Error:   false,
+			Data:    events,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -506,11 +406,11 @@ func main() {
 		group_by := r.URL.Query().Get("group_by")
 
 		groups := []string{"day", "week", "month"}
-		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !Contains(groups, group_by)) {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !omisocial.Contains(groups, group_by)) {
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -526,13 +426,31 @@ func main() {
 			group_by,
 		)
 
-		group_events := map[string]GroupEvents{}
+		group_events := map[string]omisocial.GroupEvents{}
 		for _, event := range events {
 			if val, ok := group_events[event.Period]; ok {
-				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views, event.Sessions})
+				val.Events = append(
+					val.Events,
+					omisocial.GroupEvent{
+						Name:     event.Name,
+						Visitors: event.Visitors,
+						Views:    event.Views,
+						Sessions: event.Sessions,
+					},
+				)
 				group_events[val.Period] = val
 			} else {
-				group_event := GroupEvents{Period: event.Period, Events: []GroupEvent{{event.Name, event.Visitors, event.Views, event.Sessions}}}
+				group_event := omisocial.GroupEvents{
+					Period: event.Period,
+					Events: []omisocial.GroupEvent{
+						{
+							Name:     event.Name,
+							Visitors: event.Visitors,
+							Views:    event.Views,
+							Sessions: event.Sessions,
+						},
+					},
+				}
 				group_events[event.Period] = group_event
 			}
 		}
@@ -544,15 +462,15 @@ func main() {
 		}
 		sort.Strings(keys)
 
-		data := []GroupEvents{}
+		data := []omisocial.GroupEvents{}
 		for _, key := range keys {
 			data = append(data, group_events[key])
 		}
 
-		jData, _ := json.Marshal(&ResponseGroupEvents{
-			"",
-			false,
-			data,
+		jData, _ := json.Marshal(&omisocial.ResponseGroupEvents{
+			Message: "",
+			Error:   false,
+			Data:    data,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -567,11 +485,11 @@ func main() {
 		group_by := r.URL.Query().Get("group_by")
 
 		groups := []string{"day", "week", "month"}
-		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !Contains(groups, group_by)) {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+		if from == 0 || to == 0 || site_id == 0 || from > to || (group_by != "" && !omisocial.Contains(groups, group_by)) {
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -596,13 +514,31 @@ func main() {
 			group_by,
 		)
 
-		group_events := map[string]GroupEvents{}
+		group_events := map[string]omisocial.GroupEvents{}
 		for _, event := range events {
 			if val, ok := group_events[event.Period]; ok {
-				val.Events = append(val.Events, GroupEvent{event.Name, event.Visitors, event.Views, event.Sessions})
+				val.Events = append(
+					val.Events,
+					omisocial.GroupEvent{
+						Name:     event.Name,
+						Visitors: event.Visitors,
+						Views:    event.Views,
+						Sessions: event.Sessions,
+					},
+				)
 				group_events[val.Period] = val
 			} else {
-				group_event := GroupEvents{Period: event.Period, Events: []GroupEvent{{event.Name, event.Visitors, event.Views, event.Sessions}}}
+				group_event := omisocial.GroupEvents{
+					Period: event.Period,
+					Events: []omisocial.GroupEvent{
+						{
+							Name:     event.Name,
+							Visitors: event.Visitors,
+							Views:    event.Views,
+							Sessions: event.Sessions,
+						},
+					},
+				}
 				group_events[event.Period] = group_event
 			}
 		}
@@ -614,7 +550,7 @@ func main() {
 		}
 		sort.Strings(keys)
 
-		data := []OverTime{}
+		data := []omisocial.OverTime{}
 		for _, key := range keys {
 			visitor := 0
 			for _, item := range visitors {
@@ -622,13 +558,20 @@ func main() {
 					visitor = item.Visitors
 				}
 			}
-			data = append(data, OverTime{group_events[key].Period, visitor, group_events[key].Events})
+			data = append(
+				data,
+				omisocial.OverTime{
+					Period:   group_events[key].Period,
+					Visitors: visitor,
+					Events:   group_events[key].Events,
+				},
+			)
 		}
 
-		jData, _ := json.Marshal(&ResponseOverTime{
-			"",
-			false,
-			data,
+		jData, _ := json.Marshal(&omisocial.ResponseOverTime{
+			Message: "",
+			Error:   false,
+			Data:    data,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)
@@ -644,10 +587,10 @@ func main() {
 		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
 
 		if from == 0 || to == 0 || site_id == 0 || from > to {
-			jData, _ := json.Marshal(&Response{
-				"Invalid input data",
-				true,
-				nil,
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -669,14 +612,14 @@ func main() {
 		})
 
 		if count == 0 {
-			jData, _ := json.Marshal(&ResponseUTMSources{
-				"",
-				false,
-				0,
-				count,
-				int(page),
-				int(page_size),
-				nil,
+			jData, _ := json.Marshal(&omisocial.ResponseUTMSources{
+				Message:    "No data",
+				Error:      false,
+				TotalPages: 0,
+				Count:      count,
+				Page:       int(page),
+				PageSize:   int(page_size),
+				Data:       nil,
 			})
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
@@ -699,14 +642,92 @@ func main() {
 			Offset:   int(offset),
 		})
 
-		jData, _ := json.Marshal(&ResponseUTMSources{
-			"",
-			false,
-			int(total_pages),
-			count,
-			int(page),
-			int(page_size),
-			sources,
+		jData, _ := json.Marshal(&omisocial.ResponseUTMSources{
+			Message:    "",
+			Error:      false,
+			TotalPages: 0,
+			Count:      count,
+			Page:       int(page),
+			PageSize:   int(page_size),
+			Data:       sources,
+		})
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}))
+
+	http.Handle("/report/otm-sources", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		analyzer := omisocial.NewAnalyzer(store)
+
+		from, _ := strconv.ParseInt(r.URL.Query().Get("from"), 10, 64)
+		to, _ := strconv.ParseInt(r.URL.Query().Get("to"), 10, 64)
+		site_id, _ := strconv.ParseInt(r.URL.Query().Get("site_id"), 10, 64)
+		page, _ := strconv.ParseInt(r.URL.Query().Get("page"), 10, 64)
+		page_size, _ := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64)
+
+		if from == 0 || to == 0 || site_id == 0 || from > to {
+			jData, _ := json.Marshal(&omisocial.Response{
+				Message: "Invalid input data",
+				Error:   true,
+				Data:    nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		if page < 1 {
+			page = 1
+		}
+
+		if page_size <= 0 {
+			page_size = 25
+		}
+
+		count, _ := analyzer.OTMSourceCount(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+		})
+
+		if count == 0 {
+			jData, _ := json.Marshal(&omisocial.ResponseOTMSources{
+				Message:    "No data",
+				Error:      false,
+				TotalPages: 0,
+				Count:      count,
+				Page:       int(page),
+				PageSize:   int(page_size),
+				Data:       nil,
+			})
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jData)
+			return
+		}
+
+		var total_pages = int64(math.Ceil(float64(count) / float64(page_size)))
+
+		if page > total_pages {
+			page = total_pages
+		}
+
+		offset := (int(page) - 1) * int(page_size)
+
+		sources, _ := analyzer.OTMSource(&omisocial.Filter{
+			From:     time.Unix(from, 0),
+			To:       time.Unix(to, 0),
+			ClientID: site_id,
+			Limit:    int(page_size),
+			Offset:   int(offset),
+		})
+
+		jData, _ := json.Marshal(&omisocial.ResponseOTMSources{
+			Message:    "",
+			Error:      false,
+			TotalPages: 0,
+			Count:      count,
+			Page:       int(page),
+			PageSize:   int(page_size),
+			Data:       sources,
 		})
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jData)

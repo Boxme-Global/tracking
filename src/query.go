@@ -189,6 +189,12 @@ var (
 		queryDirection: "ASC",
 		name:           "utm_term",
 	}
+	fieldOTMSource = field{
+		querySessions:  "otm_source",
+		queryPageViews: "otm_source",
+		queryDirection: "ASC",
+		name:           "otm_source",
+	}
 	fieldTitle = field{
 		querySessions:  "title",
 		queryPageViews: "title",
