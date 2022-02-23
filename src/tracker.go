@@ -156,7 +156,7 @@ func (tracker *Tracker) Hit(r *http.Request, options *HitOptions) {
 		return
 	}
 
-	if IgnoreHit(r) {
+	if !IgnoreHit(r) {
 		if options == nil {
 			options = &HitOptions{
 				ReferrerDomainBlacklist:                   tracker.referrerDomainBlacklist,
