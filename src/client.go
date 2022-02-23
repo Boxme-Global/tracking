@@ -52,7 +52,8 @@ func (client *Client) SavePageViews(pageViews []PageView) error {
 	query, err := tx.Prepare(`INSERT INTO "page_view" (client_id, visitor_id, session_id, time, duration_seconds,
 		path, title, language, country_code, city, referrer, referrer_name, referrer_icon, os, os_version,
 		browser, browser_version, desktop, mobile, screen_width, screen_height, screen_class,
-		utm_source, utm_medium, utm_campaign, utm_content, utm_term) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+		utm_source, utm_medium, utm_campaign, utm_content, utm_term, otm_source, otm_medium, otm_campaign, otm_position) 
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
 
 	if err != nil {
 		return err
@@ -60,7 +61,8 @@ func (client *Client) SavePageViews(pageViews []PageView) error {
 
 	for _, pageView := range pageViews {
 		log.Println(pageView)
-		_, err := query.Exec(pageView.ClientID,
+		_, err := query.Exec(
+			pageView.ClientID,
 			pageView.VisitorID,
 			pageView.SessionID,
 			pageView.Time,
@@ -86,7 +88,12 @@ func (client *Client) SavePageViews(pageViews []PageView) error {
 			pageView.UTMMedium,
 			pageView.UTMCampaign,
 			pageView.UTMContent,
-			pageView.UTMTerm)
+			pageView.UTMTerm,
+			pageView.OTMSource,
+			pageView.OTMMedium,
+			pageView.OTMCampaign,
+			pageView.OTMPosition,
+		)
 
 		if err != nil {
 			if e := tx.Rollback(); e != nil {
@@ -115,14 +122,16 @@ func (client *Client) SaveSessions(sessions []Session) error {
 	query, err := tx.Prepare(`INSERT INTO "session" (sign, client_id, visitor_id, session_id, time, start, duration_seconds,
 		entry_path, exit_path, page_views, is_bounce, entry_title, exit_title, language, country_code, city, referrer, referrer_name, referrer_icon, os, os_version,
 		browser, browser_version, desktop, mobile, screen_width, screen_height, screen_class,
-		utm_source, utm_medium, utm_campaign, utm_content, utm_term) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+		utm_source, utm_medium, utm_campaign, utm_content, utm_term, otm_source, otm_medium, otm_campaign, otm_position) 
+		VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
 
 	if err != nil {
 		return err
 	}
 
 	for _, session := range sessions {
-		_, err := query.Exec(session.Sign,
+		_, err := query.Exec(
+			session.Sign,
 			session.ClientID,
 			session.VisitorID,
 			session.SessionID,
@@ -154,7 +163,12 @@ func (client *Client) SaveSessions(sessions []Session) error {
 			session.UTMMedium,
 			session.UTMCampaign,
 			session.UTMContent,
-			session.UTMTerm)
+			session.UTMTerm,
+			session.OTMSource,
+			session.OTMMedium,
+			session.OTMCampaign,
+			session.OTMPosition,
+		)
 
 		if err != nil {
 			if e := tx.Rollback(); e != nil {
