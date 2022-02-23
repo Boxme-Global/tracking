@@ -173,7 +173,6 @@ func (tracker *Tracker) Hit(r *http.Request, options *HitOptions) {
 
 		options.SessionCache = tracker.sessionCache
 		pageView, sessionState, ua := HitFromRequest(r, tracker.salt, options)
-
 		if pageView != nil {
 			tracker.pageViews <- *pageView
 			tracker.sessions <- sessionState
@@ -243,6 +242,10 @@ func (tracker *Tracker) Event(r *http.Request, eventOptions EventOptions, option
 				UTMCampaign:     pageView.UTMCampaign,
 				UTMContent:      pageView.UTMContent,
 				UTMTerm:         pageView.UTMTerm,
+				OTMSource:       pageView.OTMSource,
+				OTMMedium:       pageView.OTMMedium,
+				OTMCampaign:     pageView.OTMCampaign,
+				OTMPosition:     pageView.OTMPosition,
 			}
 		}
 	}

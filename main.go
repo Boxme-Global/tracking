@@ -97,7 +97,6 @@ func main() {
 
 			tracker.Event(r, options, omisocial.HitOptionsFromRequest(r))
 		}
-
 		w.Write([]byte("hi"))
 	}))
 

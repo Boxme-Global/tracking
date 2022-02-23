@@ -80,6 +80,17 @@ type HitOptions struct {
 	ScreenHeight uint16
 
 	geoDB *GeoDB
+
+	UTMSource   string
+	UTMMedium   string
+	UTMCampaign string
+	UTMContent  string
+	UTMTerm     string
+
+	OTMSource   string
+	OTMMedium   string
+	OTMCampaign string
+	OTMPosition string
 }
 
 // HitFromRequest returns a new PageView and Session for given request, salt and HitOptions.
@@ -145,6 +156,10 @@ func HitFromRequest(r *http.Request, salt string, options *HitOptions) (*PageVie
 		UTMCampaign:     sessionState.State.UTMCampaign,
 		UTMContent:      sessionState.State.UTMContent,
 		UTMTerm:         sessionState.State.UTMTerm,
+		OTMSource:       sessionState.State.OTMSource,
+		OTMMedium:       sessionState.State.OTMMedium,
+		OTMCampaign:     sessionState.State.OTMCampaign,
+		OTMPosition:     sessionState.State.OTMPosition,
 	}, sessionState, ua
 }
 
@@ -218,12 +233,20 @@ func IgnoreHit(r *http.Request) bool {
 func HitOptionsFromRequest(r *http.Request) *HitOptions {
 	query := r.URL.Query()
 	return &HitOptions{
-		ClientID:     getUInt64QueryParam(query.Get("id")),
-		URL:          getURLQueryParam(query.Get("url")),
-		Title:        strings.TrimSpace(query.Get("title")),
-		Referrer:     getURLQueryParam(query.Get("referrer")),
-		ScreenWidth:  getUInt16QueryParam(query.Get("screen_width")),
-		ScreenHeight: getUInt16QueryParam(query.Get("screen_height")),
+		ClientID:    getUInt64QueryParam(query.Get("id")),
+		URL:         getURLQueryParam(query.Get("url")),
+		Title:       strings.TrimSpace(query.Get("title")),
+		Referrer:    getURLQueryParam(query.Get("referrer")),
+		ScreenWidth: getUInt16QueryParam(query.Get("screen_width")),
+		UTMSource:   strings.TrimSpace(query.Get("utm_source")),
+		UTMMedium:   strings.TrimSpace(query.Get("utm_medium")),
+		UTMCampaign: strings.TrimSpace(query.Get("utm_campaign")),
+		UTMContent:  strings.TrimSpace(query.Get("utm_content")),
+		UTMTerm:     strings.TrimSpace(query.Get("utm_term")),
+		OTMSource:   strings.TrimSpace(query.Get("otm_source")),
+		OTMMedium:   strings.TrimSpace(query.Get("otm_medium")),
+		OTMCampaign: strings.TrimSpace(query.Get("otm_campaign")),
+		OTMPosition: strings.TrimSpace(query.Get("otm_position")),
 	}
 }
 
@@ -242,6 +265,7 @@ func newSession(r *http.Request, options *HitOptions, fingerprint uint64, now ti
 	referrerIcon = shortenString(referrerIcon, 2000)
 	screen := GetScreenClass(options.ScreenWidth)
 	utm := getUTMParams(r)
+	otm := getOTMParams(r)
 	countryCode, city := "", ""
 
 	if options.geoDB != nil {
@@ -286,6 +310,10 @@ func newSession(r *http.Request, options *HitOptions, fingerprint uint64, now ti
 		UTMCampaign:    utm.campaign,
 		UTMContent:     utm.content,
 		UTMTerm:        utm.term,
+		OTMSource:      otm.source,
+		OTMMedium:      otm.medium,
+		OTMCampaign:    otm.campaign,
+		OTMPosition:    otm.position,
 	}, &uaInfo
 
 }
